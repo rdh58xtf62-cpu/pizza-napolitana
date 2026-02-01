@@ -24,6 +24,7 @@
   --accent2:#4e86e6;
   --good:#33d17a;
   --warn:#ffcc00;
+  --bad:#ff5c5c;
   --radius:18px;
   --shadow:0 18px 40px rgba(0,0,0,.35);
 }
@@ -39,8 +40,8 @@ body{
     radial-gradient(900px 650px at 110% 10%, rgba(51,209,122,.18), transparent 55%),
     var(--bg);
 }
-.wrap{max-width:920px;margin:0 auto}
-header{display:flex;gap:14px;align-items:flex-start;justify-content:space-between;margin-bottom:12px}
+.wrap{max-width:980px;margin:0 auto}
+header{display:flex;gap:14px;align-items:flex-start;justify-content:space-between;margin-bottom:10px}
 h1{margin:0;font-size:20px;letter-spacing:.2px}
 .sub{margin:6px 0 0;color:var(--muted);font-size:13px;line-height:1.35}
 .badge{
@@ -53,10 +54,32 @@ h1{margin:0;font-size:20px;letter-spacing:.2px}
   font-size:12px;
   white-space:nowrap;
 }
+.topbar{
+  display:flex; gap:10px; flex-wrap:wrap;
+  margin: 10px 0 14px;
+}
+.pill{
+  border:1px solid rgba(255,255,255,.14);
+  background: rgba(255,255,255,.08);
+  color:var(--text);
+  padding:10px 12px;
+  border-radius:999px;
+  font-weight:650;
+  letter-spacing:.2px;
+  cursor:pointer;
+}
+.pill.primary{
+  background: linear-gradient(180deg, rgba(106,167,255,.95), rgba(78,134,230,.78));
+  border-color: rgba(106,167,255,.95);
+}
+.pill.ghost{background: rgba(0,0,0,.18);}
+.pill.ok{border-color:rgba(51,209,122,.6)}
+.pill.warn{border-color:rgba(255,204,0,.6)}
+.pill.bad{border-color:rgba(255,92,92,.6)}
 
 .tabs{
   display:flex; gap:10px; flex-wrap:wrap;
-  margin: 12px 0 14px;
+  margin: 0 0 14px;
 }
 .tabbtn{
   border:1px solid rgba(255,255,255,.14);
@@ -72,9 +95,8 @@ h1{margin:0;font-size:20px;letter-spacing:.2px}
   background: linear-gradient(180deg, rgba(106,167,255,.95), rgba(78,134,230,.78));
   border-color: rgba(106,167,255,.95);
 }
-
 .grid{display:grid;grid-template-columns:1.05fr .95fr;gap:14px}
-@media (max-width: 900px){.grid{grid-template-columns:1fr} header{flex-direction:column;align-items:flex-start;}}
+@media (max-width: 980px){.grid{grid-template-columns:1fr} header{flex-direction:column;align-items:flex-start;}}
 
 .card{
   background: linear-gradient(180deg, rgba(255,255,255,.10), rgba(255,255,255,.06));
@@ -164,14 +186,24 @@ button.ghost{background: rgba(0,0,0,.18);}
   font-size: 12px;
   line-height: 1.35;
 }
-.okdot{
-  display:inline-block;width:8px;height:8px;border-radius:99px;
-  background:var(--good);
-  box-shadow:0 0 0 3px rgba(51,209,122,.18);
-  margin-right:8px;transform:translateY(-1px);
+.alerts{
+  display:grid;
+  gap:8px;
 }
+.alert{
+  padding:10px 12px;
+  border-radius:14px;
+  border:1px solid rgba(255,255,255,.14);
+  background: rgba(0,0,0,.18);
+  font-size:12px;
+  color: var(--text);
+}
+.alert.ok{border-color:rgba(51,209,122,.55)}
+.alert.warn{border-color:rgba(255,204,0,.55)}
+.alert.bad{border-color:rgba(255,92,92,.55)}
 .hide{display:none !important;}
 .smallcaps{font-variant: all-small-caps; letter-spacing:.6px;}
+hr.sep{border:none;border-top:1px solid rgba(255,255,255,.10);margin:12px 0}
 </style>
 </head>
 
@@ -180,14 +212,22 @@ button.ghost{background: rgba(0,0,0,.18);}
   <header>
     <div>
       <h1>Pizza Napolitana — Produção</h1>
-      <p class="sub"><span class="okdot"></span>Modo clássico fechado (65% H₂O · Poolish 20% · Sal 2,8% · Fermento só no poolish · Mel no poolish)</p>
+      <p class="sub">Modo clássico fechado (65% H₂O · Poolish 20% · Sal 2,8% · Fermento só no poolish · Mel no poolish)</p>
     </div>
     <div class="badge">Marana lenha · solo rotativo · 300–350°C</div>
   </header>
 
+  <!-- STAFF / GESTÃO -->
+  <div class="topbar">
+    <button class="pill ok" id="modePill">Modo: STAFF</button>
+    <button class="pill ghost" id="unlockBtn">Desbloquear Gestão</button>
+    <span class="pill ghost" id="statusPill">Offline/PWA OK</span>
+  </div>
+
   <div class="tabs">
     <button class="tabbtn active" data-tab="massa">Massa</button>
-    <button class="tabbtn" data-tab="forno">Forno & Perfis</button>
+    <button class="tabbtn" data-tab="operacao">Operação</button>
+    <button class="tabbtn" data-tab="custos">Custos</button>
     <button class="tabbtn" data-tab="lenha">Lenha</button>
   </div>
 
@@ -201,8 +241,8 @@ button.ghost{background: rgba(0,0,0,.18);}
         </div>
         <div class="bd">
           <div class="field">
-            <label for="modo">Modo de cálculo <span class="hint">normal ou inverso</span></label>
-            <select id="modo">
+            <label for="calcMode">Modo de cálculo <span class="hint">normal / inverso</span></label>
+            <select id="calcMode">
               <option value="farinha" selected>Tenho farinha → calcular</option>
               <option value="bolas">Quero X bolas → calcular farinha</option>
             </select>
@@ -238,8 +278,7 @@ button.ghost{background: rgba(0,0,0,.18);}
           </div>
 
           <div class="note">
-            <b>Correção fixa:</b> fermento seco calculado sobre a farinha total e colocado <b>apenas</b> no poolish.
-            Massa final <b>não leva fermento extra</b>.
+            <b>Fixos (não mexer):</b> fermento seco calculado sobre farinha total e entra <b>apenas</b> no poolish.
           </div>
         </div>
       </section>
@@ -270,17 +309,17 @@ button.ghost{background: rgba(0,0,0,.18);}
     </div>
   </div>
 
-  <!-- TAB: FORNO -->
-  <div id="tab-forno" class="hide">
+  <!-- TAB: OPERAÇÃO (Cronograma + Avisos + Forno) -->
+  <div id="tab-operacao" class="hide">
     <div class="grid">
       <section class="card">
         <div class="hd">
-          <h2>Perfis (Açores) — Marana lenha rotativo</h2>
-          <div class="hint">sugestões operacionais</div>
+          <h2>Perfil & Ambiente</h2>
+          <div class="hint">verão/inverno + avisos</div>
         </div>
         <div class="bd">
           <div class="field">
-            <label for="perfil">Perfil <span class="hint">verão / inverno</span></label>
+            <label for="perfil">Perfil (Açores)</label>
             <select id="perfil">
               <option value="verao">Verão</option>
               <option value="inverno">Inverno</option>
@@ -288,7 +327,12 @@ button.ghost{background: rgba(0,0,0,.18);}
           </div>
 
           <div class="field">
-            <label for="tempForno">Faixa alvo de forno (°C) <span class="hint">teu normal: 300–350</span></label>
+            <label for="ambient">Temperatura ambiente (°C) <span class="hint">entrada rápida</span></label>
+            <input id="ambient" type="number" min="-5" step="0.5" value="20">
+          </div>
+
+          <div class="field">
+            <label for="tempForno">Forno alvo (°C) <span class="hint">teu normal: 300–350</span></label>
             <select id="tempForno">
               <option value="300-330">300–330°C (mais controlado)</option>
               <option value="330-350" selected>330–350°C (serviço forte)</option>
@@ -296,24 +340,32 @@ button.ghost{background: rgba(0,0,0,.18);}
           </div>
 
           <div class="field">
-            <label for="rotacao">Rotação do solo <span class="hint">guia prático</span></label>
+            <label for="rotacao">Rotação do solo <span class="hint">guia</span></label>
             <select id="rotacao">
-              <option value="baixa">Baixa (mais cor uniforme, menos stress)</option>
-              <option value="media" selected>Média (equilíbrio para 300–350°C)</option>
-              <option value="alta">Alta (picos/produção; vigiar cor)</option>
+              <option value="baixa">Baixa</option>
+              <option value="media" selected>Média</option>
+              <option value="alta">Alta</option>
             </select>
           </div>
 
-          <div class="note" id="notaForno"></div>
+          <div class="sectionTitle">Avisos</div>
+          <div class="alerts" id="alertsBox"></div>
+
+          <div class="note" id="notaPerfil"></div>
         </div>
       </section>
 
       <section class="card">
         <div class="hd">
-          <h2>Rotina diária</h2>
-          <div class="hint">baseado no teu horário</div>
+          <h2>Cronograma automático</h2>
+          <div class="hint">poolish → serviço</div>
         </div>
         <div class="bd">
+          <div class="field">
+            <label>Poolish: hora de início <span class="hint">ex.: 22:00</span></label>
+            <input id="poolishStart" type="time" value="22:00">
+          </div>
+
           <div class="field">
             <label>Aquecimento <span class="hint">início e fim</span></label>
             <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;">
@@ -330,70 +382,176 @@ button.ghost{background: rgba(0,0,0,.18);}
             </div>
           </div>
 
-          <div class="kv"><div class="k">Horas de aquecimento</div><div class="v" id="heatHours">—</div></div>
-          <div class="kv"><div class="k">Horas de serviço</div><div class="v" id="srvHours">—</div></div>
+          <div class="btnrow">
+            <button class="primary" id="btnCrono">Gerar cronograma</button>
+          </div>
 
-          <div class="note" id="notaRotina"></div>
+          <div class="sectionTitle">Plano (hora local)</div>
+          <div id="cronoOut"></div>
+
+          <div class="note">
+            O cronograma é operacional (cozinha). Ajusta com a tua realidade e mantém consistência.
+          </div>
         </div>
       </section>
     </div>
   </div>
 
-  <!-- TAB: LENHA -->
+  <!-- TAB: CUSTOS -->
+  <div id="tab-custos" class="hide">
+    <div class="grid">
+      <section class="card">
+        <div class="hd">
+          <h2>Custo por pizza</h2>
+          <div class="hint">ingredientes + lenha</div>
+        </div>
+        <div class="bd">
+          <div class="field">
+            <label>Preços (€/kg) <span class="hint">Gestão</span></label>
+            <div class="hint" style="margin-bottom:8px">Farinha, tomate, mozzarella, lenha. (Staff pode ver resultados, não precisa mexer.)</div>
+            <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;">
+              <div>
+                <label class="hint">Farinha €/kg</label>
+                <input id="pFarinha" type="number" min="0" step="0.01" value="1.20">
+              </div>
+              <div>
+                <label class="hint">Tomate €/kg</label>
+                <input id="pTomate" type="number" min="0" step="0.01" value="2.50">
+              </div>
+              <div>
+                <label class="hint">Mozzarella €/kg</label>
+                <input id="pQueijo" type="number" min="0" step="0.01" value="8.00">
+              </div>
+              <div>
+                <label class="hint">Lenha €/kg</label>
+                <input id="pLenha" type="number" min="0" step="0.01" value="0.35">
+              </div>
+            </div>
+          </div>
+
+          <div class="field">
+            <label>Por pizza (g) <span class="hint">ajustável</span></label>
+            <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;">
+              <div>
+                <label class="hint">Molho (g)</label>
+                <input id="gMolho" type="number" min="0" step="1" value="80">
+              </div>
+              <div>
+                <label class="hint">Mozzarella (g)</label>
+                <input id="gQueijo" type="number" min="0" step="1" value="90">
+              </div>
+            </div>
+            <div class="hint" style="margin-top:8px">A massa usa o “peso por bola” do separador Massa.</div>
+          </div>
+
+          <div class="field">
+            <label>Lenha por pizza (método) <span class="hint">estimativa</span></label>
+            <select id="woodMethod">
+              <option value="por_servico" selected>Distribuir lenha total pelo nº de pizzas do serviço</option>
+              <option value="fixo">Valor fixo (kg/pizza)</option>
+            </select>
+            <div id="fixedWoodBox" class="hide" style="margin-top:10px">
+              <label class="hint">kg por pizza</label>
+              <input id="kgPerPizza" type="number" min="0" step="0.001" value="0.06">
+            </div>
+          </div>
+
+          <div class="btnrow">
+            <button class="primary" id="btnCustos">Calcular custos</button>
+          </div>
+
+          <div class="sectionTitle">Resultados</div>
+          <div class="kv"><div class="k">Custo massa (€/pizza)</div><div class="v" id="cMassa">—</div></div>
+          <div class="kv"><div class="k">Custo tomate (€/pizza)</div><div class="v" id="cTomate">—</div></div>
+          <div class="kv"><div class="k">Custo mozzarella (€/pizza)</div><div class="v" id="cQueijo">—</div></div>
+          <div class="kv"><div class="k">Custo lenha (€/pizza)</div><div class="v" id="cLenha">—</div></div>
+          <div class="kv"><div class="k"><b>Total (€/pizza)</b></div><div class="v" id="cTotal">—</div></div>
+
+          <div class="note">
+            Para margens: acrescenta depois custos indiretos (mão de obra, renda, perdas). Aqui é custo direto por pizza.
+          </div>
+        </div>
+      </section>
+
+      <section class="card">
+        <div class="hd">
+          <h2>Custo por serviço</h2>
+          <div class="hint">com base no nº de pizzas</div>
+        </div>
+        <div class="bd">
+          <div class="field">
+            <label for="pizzasSrv">Pizzas previstas no serviço <span class="hint">ex.: 60</span></label>
+            <input id="pizzasSrv" type="number" min="0" step="1" value="60">
+          </div>
+
+          <div class="kv"><div class="k">Custo total serviço (estim.)</div><div class="v" id="cSrv">—</div></div>
+          <div class="kv"><div class="k">Lenha total serviço (estim.)</div><div class="v" id="woodTotalCostTab">—</div></div>
+
+          <div class="note">
+            Dica: usa “Lenha real” no separador Lenha para fechar custos com números reais.
+          </div>
+        </div>
+      </section>
+    </div>
+  </div>
+
+  <!-- TAB: LENHA (estimado vs real) -->
   <div id="tab-lenha" class="hide">
     <div class="grid">
       <section class="card">
         <div class="hd">
-          <h2>Cálculo de lenha (kg)</h2>
-          <div class="hint">estimativa ajustável</div>
+          <h2>Lenha (estimada)</h2>
+          <div class="hint">kg/h ajustável</div>
         </div>
         <div class="bd">
           <div class="field">
-            <label>Horas (puxa do separador “Forno”) <span class="hint">editável lá</span></label>
-            <div class="kv"><div class="k">Aquecimento</div><div class="v" id="heatHours2">—</div></div>
-            <div class="kv"><div class="k">Serviço</div><div class="v" id="srvHours2">—</div></div>
+            <label>Horas (puxa da Operação)</label>
+            <div class="kv"><div class="k">Aquecimento</div><div class="v" id="heatHours">—</div></div>
+            <div class="kv"><div class="k">Serviço</div><div class="v" id="srvHours">—</div></div>
           </div>
 
           <div class="field">
-            <label for="rateHeat">Consumo no aquecimento (kg/h) <span class="hint">ajusta à tua realidade</span></label>
+            <label for="rateHeat">Consumo aquecimento (kg/h)</label>
             <input id="rateHeat" type="number" min="0" step="0.1" value="4.5">
-            <div class="hint" style="margin-top:8px">Começa aqui: 4–6 kg/h é comum em aquecimento. Ajusta após 3 serviços com pesagem real.</div>
           </div>
 
           <div class="field">
-            <label for="rateSrv">Consumo em serviço (kg/h) <span class="hint">manter 300–350°C</span></label>
+            <label for="rateSrv">Consumo serviço (kg/h)</label>
             <input id="rateSrv" type="number" min="0" step="0.1" value="3.0">
-            <div class="hint" style="margin-top:8px">Começa aqui: 2–4 kg/h em serviço (depende do vento, porta, lotação e madeira).</div>
           </div>
 
           <div class="btnrow">
             <button class="primary" id="btnLenha">Calcular lenha</button>
           </div>
 
-          <div class="sectionTitle">Resultado</div>
           <div class="kv"><div class="k">Lenha aquecimento</div><div class="v" id="woodHeat">—</div></div>
           <div class="kv"><div class="k">Lenha serviço</div><div class="v" id="woodSrv">—</div></div>
           <div class="kv"><div class="k"><b>Total (kg)</b></div><div class="v" id="woodTotal">—</div></div>
-
-          <div class="note">
-            <b>Como calibrar:</b> pesa a lenha no início do aquecimento e no fim do serviço durante 3 dias.
-            Divide por horas para obteres as tuas taxas reais (kg/h) e coloca aqui.
-          </div>
         </div>
       </section>
 
       <section class="card">
         <div class="hd">
-          <h2>Dicas rápidas para baixar consumo</h2>
-          <div class="hint">sem perder performance</div>
+          <h2>Lenha real vs estimada</h2>
+          <div class="hint">controlo</div>
         </div>
         <div class="bd">
-          <div class="note" style="margin-top:0">
-            • Mantém a porta o mais fechada possível durante aquecimento.<br>
-            • Em serviço, alimenta com toros menores e mais frequentes (evita picos).<br>
-            • Com solo rotativo, usa rotação média e ajusta tempo/posição em vez de “fogo a mais”.<br>
-            • Vento lateral aumenta consumo — protege a boca se possível.<br>
-            • Madeira consistente e seca = menos kg para mesma energia.
+          <div class="field">
+            <label for="woodReal">Lenha real usada (kg) <span class="hint">pesa no fim</span></label>
+            <input id="woodReal" type="number" min="0" step="0.1" value="0">
+          </div>
+
+          <div class="btnrow">
+            <button class="primary" id="btnCompare">Comparar</button>
+          </div>
+
+          <div class="kv"><div class="k">Estimado (kg)</div><div class="v" id="cmpEst">—</div></div>
+          <div class="kv"><div class="k">Real (kg)</div><div class="v" id="cmpReal">—</div></div>
+          <div class="kv"><div class="k">Diferença (kg)</div><div class="v" id="cmpDiff">—</div></div>
+          <div class="kv"><div class="k">Desvio (%)</div><div class="v" id="cmpPct">—</div></div>
+
+          <div class="note">
+            Se o desvio ficar sempre alto, ajusta kg/h (aquecimento e serviço) até bater com a tua operação real.
           </div>
         </div>
       </section>
@@ -403,7 +561,9 @@ button.ghost{background: rgba(0,0,0,.18);}
 </div>
 
 <script>
-// === RECEITA FIXA (modo napolitana clássica) ===
+// ======================
+// CONFIG FIXA (NAPOLITANA CLÁSSICA)
+// ======================
 const cfg = {
   poolish: 0.20,
   hidratacao: 0.65,
@@ -411,82 +571,113 @@ const cfg = {
   fermento: 0.00025, // 0,025% (só no poolish)
   mel: 0.001         // 0,10% (só no poolish)
 };
-// massa total por 1g farinha:
 const MASS_FACTOR = 1 + cfg.hidratacao + cfg.sal + cfg.fermento + cfg.mel; // 1.67925
+
+// ======================
+// ESTADO (STAFF / GESTÃO)
+// ======================
+const STATE = {
+  isGestao: false,
+  // PIN simples só para evitar mexidas acidentais.
+  // Podes mudar depois no código.
+  pin: "1234"
+};
 
 const $ = (id) => document.getElementById(id);
 const g = (x) => `${x.toFixed(1)} g`;
 const f = (x) => `${x.toFixed(2)} g`;
+const eur = (x) => `€ ${x.toFixed(2)}`;
 
-function timeToMinutes(t){
-  // "HH:MM"
-  if(!t || !t.includes(":")) return 0;
-  const [hh, mm] = t.split(":").map(Number);
-  return (hh*60) + mm;
-}
-function diffHours(start, end){
-  // allow cross-midnight if needed
-  let s = timeToMinutes(start);
-  let e = timeToMinutes(end);
-  if(e < s) e += 24*60;
-  return (e - s) / 60;
+function setMode(isGestao){
+  STATE.isGestao = isGestao;
+  $("modePill").textContent = `Modo: ${isGestao ? "GESTÃO" : "STAFF"}`;
+  $("modePill").className = `pill ${isGestao ? "warn" : "ok"}`;
+  $("unlockBtn").textContent = isGestao ? "Bloquear (Staff)" : "Desbloquear Gestão";
+
+  // Campos “Gestão” (preços e taxas) ficam editáveis só em gestão
+  const mgmtIds = ["pFarinha","pTomate","pQueijo","pLenha","rateHeat","rateSrv"];
+  mgmtIds.forEach(id => { $(id).disabled = !isGestao; });
+
+  // Staff ainda pode ajustar pesos por pizza (molho/queijo) se quiseres bloquear também:
+  // ["gMolho","gQueijo"].forEach(id => { $(id).disabled = !isGestao; });
+
+  // Em staff, esconder o aviso “Gestão” nos labels não é necessário, mas podes manter
 }
 
-// === TABS ===
+$("modePill").addEventListener("click", ()=>{
+  if(STATE.isGestao) setMode(false);
+});
+$("unlockBtn").addEventListener("click", ()=>{
+  if(STATE.isGestao){
+    setMode(false);
+    return;
+  }
+  const pin = prompt("PIN Gestão:");
+  if(pin === null) return;
+  if(pin.trim() === STATE.pin){
+    setMode(true);
+  } else {
+    alert("PIN incorreto.");
+  }
+});
+
+// ======================
+// TABS
+// ======================
 document.querySelectorAll(".tabbtn").forEach(btn=>{
   btn.addEventListener("click", ()=>{
     document.querySelectorAll(".tabbtn").forEach(b=>b.classList.remove("active"));
     btn.classList.add("active");
     const tab = btn.getAttribute("data-tab");
-    $("tab-massa").classList.toggle("hide", tab !== "massa");
-    $("tab-forno").classList.toggle("hide", tab !== "forno");
-    $("tab-lenha").classList.toggle("hide", tab !== "lenha");
-    if(tab !== "massa") updateHoras(); // manter lenha/forno sincronizados
+    ["massa","operacao","custos","lenha"].forEach(t=>{
+      $(`tab-${t}`).classList.toggle("hide", t !== tab);
+    });
+    // manter sincronizações
+    updateHoras();
+    calcLenha();
+    updateAlerts();
+    if(tab === "custos") calcCustos();
   });
 });
 
-// === MODO MASSA ===
-function syncModo(){
-  const modo = $("modo").value;
-  $("boxQtdBolas").classList.toggle("hide", modo !== "bolas");
-  $("boxFarinha").classList.toggle("hide", modo === "bolas");
+// ======================
+// MASSA
+// ======================
+function syncCalcMode(){
+  const mode = $("calcMode").value;
+  $("boxQtdBolas").classList.toggle("hide", mode !== "bolas");
+  $("boxFarinha").classList.toggle("hide", mode === "bolas");
 }
-$("modo").addEventListener("change", ()=>{ syncModo(); calcular(); });
+$("calcMode").addEventListener("change", ()=>{ syncCalcMode(); calcularMassa(); });
 
-$("diametro").addEventListener("change", ()=>{ calcular(); });
-$("btnCalcular").addEventListener("click", calcular);
+$("diametro").addEventListener("change", ()=>{ calcularMassa(); updateAlerts(); });
+$("btnCalcular").addEventListener("click", ()=>{ calcularMassa(); updateAlerts(); });
+$("bola").addEventListener("input", ()=>{ updateAlerts(); });
+$("farinha").addEventListener("input", ()=>{ /* live optional */ });
 
-function calcular(){
+function getBallWeight(){
   let bola = Number($("bola").value);
   const d = $("diametro").value;
   if(d) bola = Number(d);
+  return bola;
+}
 
-  if(!isFinite(bola) || bola <= 0){
-    alert("Introduz o peso por bola (g).");
-    return;
-  }
+function calcularMassa(){
+  const mode = $("calcMode").value;
+  const bola = getBallWeight();
+  if(!isFinite(bola) || bola <= 0){ alert("Peso por bola inválido."); return; }
 
   let farinha;
-  const modo = $("modo").value;
-
-  if(modo === "bolas"){
+  if(mode === "bolas"){
     const n = Number($("qtdBolas").value);
-    if(!isFinite(n) || n <= 0){
-      alert("Introduz quantas bolas queres.");
-      return;
-    }
+    if(!isFinite(n) || n <= 0){ alert("Nº bolas inválido."); return; }
     const massaDesejada = n * bola;
     farinha = massaDesejada / MASS_FACTOR;
   } else {
     farinha = Number($("farinha").value);
   }
+  if(!isFinite(farinha) || farinha <= 0){ alert("Farinha inválida."); return; }
 
-  if(!isFinite(farinha) || farinha <= 0){
-    alert("Introduz a farinha total em gramas (valor > 0).");
-    return;
-  }
-
-  // Receita
   const fp  = farinha * cfg.poolish;
   const ap  = fp;
   const at  = farinha * cfg.hidratacao;
@@ -512,6 +703,13 @@ function calcular(){
   $("mFar").textContent  = g(fm);
   $("mAgua").textContent = g(am);
   $("mSal").textContent  = g(sal);
+
+  // guardar farinha calculada no modo inverso para custos
+  if(mode === "bolas"){
+    $("farinha").value = Math.round(farinha);
+  }
+
+  return { farinha, massaTotal, nB, bola };
 }
 
 $("btnCopiar").addEventListener("click", async ()=>{
@@ -536,80 +734,195 @@ MASSA FINAL
 
   try{
     await navigator.clipboard.writeText(txt);
-    alert("Resultados copiados.");
+    alert("Copiado.");
   }catch(e){
-    alert("Não consegui copiar automaticamente. (Permissões do browser)");
+    alert("Sem permissão para copiar automaticamente.");
   }
 });
 
-// === PERFIS FORNO ===
-function updatePerfil(){
+// ======================
+// OPERAÇÃO: HORAS
+// ======================
+function timeToMinutes(t){
+  if(!t || !t.includes(":")) return 0;
+  const [hh, mm] = t.split(":").map(Number);
+  return (hh*60) + mm;
+}
+function minutesToTime(min){
+  min = ((min % (24*60)) + (24*60)) % (24*60);
+  const hh = Math.floor(min/60);
+  const mm = min % 60;
+  return `${String(hh).padStart(2,"0")}:${String(mm).padStart(2,"0")}`;
+}
+function diffHours(start, end){
+  let s = timeToMinutes(start);
+  let e = timeToMinutes(end);
+  if(e < s) e += 24*60;
+  return (e - s) / 60;
+}
+
+function updateHoras(){
+  const h = diffHours($("heatStart").value, $("heatEnd").value);
+  const s = diffHours($("srvStart").value, $("srvEnd").value);
+  $("heatHours").textContent = `${h.toFixed(2)} h`;
+  $("srvHours").textContent = `${s.toFixed(2)} h`;
+  return { h, s };
+}
+["heatStart","heatEnd","srvStart","srvEnd"].forEach(id=>{
+  $(id).addEventListener("change", ()=>{ updateHoras(); calcLenha(); calcCustos(); updateAlerts(); });
+});
+
+// ======================
+// OPERAÇÃO: PERFIL + AVISOS
+// ======================
+function updatePerfilNote(){
   const perfil = $("perfil").value;
   const faixa = $("tempForno").value;
   const rot = $("rotacao").value;
+  const ambient = Number($("ambient").value);
 
   const faixaTxt = (faixa === "300-330") ? "300–330°C" : "330–350°C";
-  let rotTxt = "média";
-  if(rot === "baixa") rotTxt = "baixa";
-  if(rot === "alta") rotTxt = "alta";
+  let rotTxt = rot;
 
-  let txt = `<b>Alvo:</b> ${faixaTxt} · <b>Rotação:</b> ${rotTxt}<br><br>`;
+  let txt = `<b>Alvo:</b> ${faixaTxt} · <b>Rotação:</b> ${rotTxt} · <b>Ambiente:</b> ${isFinite(ambient)?ambient:"—"}°C<br><br>`;
 
   if(perfil === "verao"){
     txt +=
-`<b>Verão (Açores):</b><br>
-• A massa acelera: trabalha mais “frio” e com menos tempo fora do frio antes do serviço.<br>
-• No forno, evita picos: mantém alimentação de lenha em “micro-cargas” para estabilidade.<br>
-• Se tiveres base a escurecer rápido: baixa ligeiramente a faixa (300–330°C) ou aumenta rotação para uniformizar.<br>
-• Porta: o máximo fechada possível para não disparar consumo com vento.`;
+`<b>Verão:</b><br>
+• Massa acelera: reduzir tempo fora do frio e evitar bancada quente.<br>
+• Forno: alimentação de lenha em micro-cargas para estabilidade.<br>
+• Se base escurece rápido: baixa para 300–330°C ou sobe rotação para uniformizar.`;
   } else {
     txt +=
-`<b>Inverno (Açores):</b><br>
-• A massa precisa de mais tempo a relaxar: dá mais tempo fora do frio antes de abrir.<br>
-• No forno, podes trabalhar mais confortável em 330–350°C sem queimar tanto (menos humidade/ambiente mais frio).<br>
-• Se faltarem cores no topo: sobe ligeiramente a faixa (330–350°C) ou reduz rotação se estiver a “secar” a base rápido.<br>
-• Mantém lenha seca e consistente: melhora estabilidade e reduz correções.`;
+`<b>Inverno:</b><br>
+• Massa relaxa mais devagar: dá mais tempo de bancada antes de abrir.<br>
+• Forno: podes manter 330–350°C com menos risco de queimar, mas vigia secagem da base.<br>
+• Se falta cor no topo: sobe faixa ou reduz rotação ligeiramente.`;
   }
 
-  $("notaForno").innerHTML = txt;
+  $("notaPerfil").innerHTML = txt;
 }
-$("perfil").addEventListener("change", updatePerfil);
-$("tempForno").addEventListener("change", updatePerfil);
-$("rotacao").addEventListener("change", updatePerfil);
 
-// === HORAS / ROTINA ===
-function updateHoras(){
-  const h1 = diffHours($("heatStart").value, $("heatEnd").value);
-  const s1 = diffHours($("srvStart").value, $("srvEnd").value);
-
-  $("heatHours").textContent = `${h1.toFixed(2)} h`;
-  $("srvHours").textContent = `${s1.toFixed(2)} h`;
-  $("heatHours2").textContent = `${h1.toFixed(2)} h`;
-  $("srvHours2").textContent = `${s1.toFixed(2)} h`;
-
-  $("notaRotina").innerHTML =
-`<b>Rotina sugerida:</b><br>
-• Aquecimento: começa com fogo progressivo (evita “choque térmico” e consumo desnecessário).<br>
-• 45–60 min antes do serviço: estabilizar a pedra na faixa alvo (menos fumo, chama limpa).<br>
-• Em serviço: alimentação frequente e pequena para manter 300–350°C sem picos.`;
+function pushAlert(kind, title, body){
+  const div = document.createElement("div");
+  div.className = `alert ${kind}`;
+  div.innerHTML = `<b>${title}</b><br>${body}`;
+  $("alertsBox").appendChild(div);
 }
-["heatStart","heatEnd","srvStart","srvEnd"].forEach(id=>{
-  $(id).addEventListener("change", ()=>{ updateHoras(); });
+
+function updateAlerts(){
+  $("alertsBox").innerHTML = "";
+  const perfil = $("perfil").value;
+  const ambient = Number($("ambient").value);
+  const faixa = $("tempForno").value;
+  const rot = $("rotacao").value;
+
+  const bola = getBallWeight();
+
+  // Bola fora do padrão
+  if(isFinite(bola)){
+    if(bola < 240) pushAlert("warn","Bola leve","Para 32–35 cm podes ficar com base fina. Considera 250–280 g.");
+    else if(bola > 300) pushAlert("warn","Bola pesada","Para 32–35 cm pode ficar demasiado espessa/lenta. Considera 250–280 g.");
+    else pushAlert("ok","Peso da bola OK","Dentro do intervalo típico para 32–35 cm.");
+  }
+
+  // Ambiente
+  if(isFinite(ambient)){
+    if(ambient >= 25){
+      pushAlert("bad","Ambiente quente","Massa acelera muito. Reduz tempo fora do frio, usa caixas mais cedo e evita bancada quente.");
+    } else if(ambient >= 22){
+      pushAlert("warn","Ambiente morno","Controla relax e tempo fora do frio. Ajusta por perfil verão.");
+    } else if(ambient <= 16){
+      pushAlert("warn","Ambiente frio","Dá mais tempo de relax antes de abrir; evita abrir massa fria.");
+    } else {
+      pushAlert("ok","Ambiente estável","Condições favoráveis para consistência.");
+    }
+  }
+
+  // Forno e rotação (heurística)
+  if(faixa === "330-350" && rot === "baixa"){
+    pushAlert("warn","Forno forte + rotação baixa","Risco de base marcada. Aumenta rotação para média ou baixa ligeiramente a faixa.");
+  }
+  if(faixa === "300-330" && rot === "alta"){
+    pushAlert("warn","Faixa baixa + rotação alta","Pode perder cor. Compensa com chama limpa e gestão de posição.");
+  }
+
+  // Perfil vs ambiente
+  if(perfil === "verao" && isFinite(ambient) && ambient <= 16){
+    pushAlert("warn","Verão selecionado mas ambiente frio","Se for dia frio, usa perfil inverno para guiar relax.");
+  }
+  if(perfil === "inverno" && isFinite(ambient) && ambient >= 24){
+    pushAlert("warn","Inverno selecionado mas ambiente quente","Em dias quentes, usa perfil verão para evitar sobre-fermentação.");
+  }
+}
+
+["perfil","ambient","tempForno","rotacao"].forEach(id=>{
+  $(id).addEventListener("change", ()=>{ updatePerfilNote(); updateAlerts(); gerarCronograma(); });
+  $(id).addEventListener("input", ()=>{ updatePerfilNote(); updateAlerts(); });
 });
 
-// === LENHA ===
-$("btnLenha").addEventListener("click", calcLenha);
+// ======================
+// CRONOGRAMA AUTOMÁTICO (heurístico, operacional)
+// ======================
+function gerarCronograma(){
+  // Premissas operacionais (ajustadas por perfil):
+  // Poolish: ~12h (verão) / ~14h (inverno) desde start até mistura final
+  // Mistura final → descanso: 20 min
+  // Dobras: 2 dobras a cada 20 min (opcional) → aqui colocamos como checkpoints
+  // Bolear: 90 min após mistura (verão) / 120 min (inverno)
+  // Caixas / frio: após bolear + 20 min
+  // Relax antes do serviço: tirar do frio 60–90 min (verão) / 90–120 min (inverno)
+  const perfil = $("perfil").value;
+  const poolishStart = timeToMinutes($("poolishStart").value);
+  const srvStart = timeToMinutes($("srvStart").value);
 
+  const poolishToMix = (perfil === "verao") ? 12*60 : 14*60;
+  const mixTime = poolishStart + poolishToMix;
+
+  const restAfterMix = mixTime + 20;                // 20 min
+  const fold1 = restAfterMix + 20;                  // +20
+  const fold2 = fold1 + 20;                         // +20
+  const balling = mixTime + ((perfil === "verao") ? 90 : 120); // minutos após mix
+  const boxToCold = balling + 20;
+
+  const relaxFromCold = (perfil === "verao") ? 75 : 105; // minutos antes do serviço
+  const pullFromCold = srvStart - relaxFromCold;
+
+  const items = [
+    ["Poolish começa", minutesToTime(poolishStart), "Mistura poolish (20% farinha / 1:1 água)."],
+    ["Mistura final", minutesToTime(mixTime), "Juntar poolish + resto farinha/água; sal na fase final."],
+    ["Descanso", minutesToTime(restAfterMix), "20 min (coberto)."],
+    ["Dobra 1", minutesToTime(fold1), "Opcional se estiver mole/sem força."],
+    ["Dobra 2", minutesToTime(fold2), "Opcional."],
+    ["Bolear", minutesToTime(balling), "Bolas para caixas (peso definido na app)."],
+    ["Frio (opcional)", minutesToTime(boxToCold), "Se estiver quente/serviço mais tarde, levar ao frio."],
+    ["Tirar do frio", minutesToTime(pullFromCold), "Relaxar antes de abrir (ajusta à sensação)."],
+    ["Serviço começa", minutesToTime(srvStart), "Abrir e cozer — estabilidade do forno."],
+  ];
+
+  const out = $("cronoOut");
+  out.innerHTML = "";
+  items.forEach(([t, h, d])=>{
+    const row = document.createElement("div");
+    row.className = "kv";
+    row.innerHTML = `<div class="k">${t}<div class="hint" style="margin-top:4px">${d}</div></div><div class="v">${h}</div>`;
+    out.appendChild(row);
+  });
+}
+
+$("btnCrono").addEventListener("click", gerarCronograma);
+["poolishStart","srvStart"].forEach(id=>{
+  $(id).addEventListener("change", gerarCronograma);
+});
+
+// ======================
+// LENHA (estimado) + REAL VS ESTIMADO
+// ======================
 function calcLenha(){
-  const h = parseFloat($("heatHours2").textContent) || diffHours($("heatStart").value, $("heatEnd").value);
-  const s = parseFloat($("srvHours2").textContent) || diffHours($("srvStart").value, $("srvEnd").value);
+  const { h, s } = updateHoras();
   const rH = Number($("rateHeat").value);
   const rS = Number($("rateSrv").value);
-
-  if(!isFinite(rH) || rH < 0 || !isFinite(rS) || rS < 0){
-    alert("As taxas kg/h têm de ser números válidos.");
-    return;
-  }
+  if(!isFinite(rH) || rH < 0 || !isFinite(rS) || rS < 0) return { total:0 };
 
   const woodHeat = h * rH;
   const woodSrv  = s * rS;
@@ -618,18 +931,138 @@ function calcLenha(){
   $("woodHeat").textContent = `${woodHeat.toFixed(1)} kg`;
   $("woodSrv").textContent  = `${woodSrv.toFixed(1)} kg`;
   $("woodTotal").textContent= `${total.toFixed(1)} kg`;
+  return { woodHeat, woodSrv, total };
+}
+$("btnLenha").addEventListener("click", ()=>{ calcLenha(); calcCustos(); });
+
+function compareWood(){
+  const est = calcLenha().total;
+  const real = Number($("woodReal").value);
+  if(!isFinite(real) || real < 0){ alert("Lenha real inválida."); return; }
+
+  const diff = real - est;
+  const pct = (est > 0) ? (diff/est)*100 : 0;
+
+  $("cmpEst").textContent = `${est.toFixed(1)} kg`;
+  $("cmpReal").textContent = `${real.toFixed(1)} kg`;
+  $("cmpDiff").textContent = `${diff.toFixed(1)} kg`;
+  $("cmpPct").textContent = `${pct.toFixed(1)} %`;
+}
+$("btnCompare").addEventListener("click", compareWood);
+
+// ======================
+// CUSTOS (€/pizza e por serviço)
+// ======================
+function syncWoodMethod(){
+  const m = $("woodMethod").value;
+  $("fixedWoodBox").classList.toggle("hide", m !== "fixo");
+}
+$("woodMethod").addEventListener("change", ()=>{ syncWoodMethod(); calcCustos(); });
+
+function calcCustos(){
+  // base: usar peso bola como massa por pizza
+  const bola = getBallWeight();
+  if(!isFinite(bola) || bola <= 0) return;
+
+  // preços €/kg
+  const pF = Number($("pFarinha").value);
+  const pT = Number($("pTomate").value);
+  const pQ = Number($("pQueijo").value);
+  const pL = Number($("pLenha").value);
+
+  // consumos
+  const molhoG = Number($("gMolho").value);
+  const queijoG = Number($("gQueijo").value);
+
+  if([pF,pT,pQ,pL,molhoG,queijoG].some(x=>!isFinite(x) || x<0)) return;
+
+  // custo da massa: aproximar farinha por pizza = bola / MASS_FACTOR
+  const farinhaPorPizza_g = bola / MASS_FACTOR;
+  const cMassa = (farinhaPorPizza_g/1000) * pF;
+
+  const cTomate = (molhoG/1000) * pT;
+  const cQueijo = (queijoG/1000) * pQ;
+
+  // lenha por pizza
+  let cLenha = 0;
+  let woodTotal = calcLenha().total; // kg por serviço (estimado)
+  $("woodTotalCostTab").textContent = `${woodTotal.toFixed(1)} kg`;
+
+  const pizzasSrv = Number($("pizzasSrv").value);
+  const method = $("woodMethod").value;
+
+  let kgPerPizza = 0;
+  if(method === "fixo"){
+    kgPerPizza = Number($("kgPerPizza").value);
+  } else {
+    if(isFinite(pizzasSrv) && pizzasSrv > 0){
+      kgPerPizza = woodTotal / pizzasSrv;
+    } else {
+      kgPerPizza = 0;
+    }
+  }
+  if(isFinite(kgPerPizza) && kgPerPizza >= 0){
+    cLenha = kgPerPizza * pL;
+  }
+
+  const total = cMassa + cTomate + cQueijo + cLenha;
+
+  $("cMassa").textContent = eur(cMassa);
+  $("cTomate").textContent = eur(cTomate);
+  $("cQueijo").textContent = eur(cQueijo);
+  $("cLenha").textContent = eur(cLenha);
+  $("cTotal").textContent = eur(total);
+
+  // custo serviço
+  const n = (isFinite(pizzasSrv) && pizzasSrv >= 0) ? pizzasSrv : 0;
+  $("cSrv").textContent = eur(total * n);
+}
+$("btnCustos").addEventListener("click", calcCustos);
+$("pizzasSrv").addEventListener("input", calcCustos);
+["pFarinha","pTomate","pQueijo","pLenha","gMolho","gQueijo","kgPerPizza"].forEach(id=>{
+  $(id).addEventListener("input", calcCustos);
+});
+
+// ======================
+// INIT
+// ======================
+function setPWAStatus(){
+  const standalone = window.matchMedia("(display-mode: standalone)").matches || window.navigator.standalone;
+  $("statusPill").textContent = standalone ? "PWA: Standalone" : "PWA: Browser";
+  $("statusPill").className = `pill ${standalone ? "ok" : "ghost"}`;
 }
 
-// === INIT ===
-syncModo();
-updatePerfil();
-updateHoras();
-calcular();
-calcLenha();
+// init tab display
+function showTab(name){
+  ["massa","operacao","custos","lenha"].forEach(t=>{
+    $(`tab-${t}`).classList.toggle("hide", t !== name);
+  });
+}
+
+function init(){
+  setMode(false);
+  syncCalcMode();
+  syncWoodMethod();
+  updateHoras();
+  calcularMassa();
+  updatePerfilNote();
+  updateAlerts();
+  gerarCronograma();
+  calcLenha();
+  calcCustos();
+  setPWAStatus();
+}
+
+$("btnCalcular").addEventListener("click", ()=>{ calcCustos(); });
+$("ambient").addEventListener("input", ()=>{ updatePerfilNote(); updateAlerts(); });
+$("bola").addEventListener("input", ()=>{ calcCustos(); });
+$("diametro").addEventListener("change", ()=>{ calcCustos(); });
+
+init();
 
 // Service Worker (offline)
 if ("serviceWorker" in navigator) {
-  navigator.serviceWorker.register("/pizza-napolitana/sw.js");
+  navigator.serviceWorker.register("/pizza-napolitana/sw.js").catch(()=>{});
 }
 </script>
 </body>
