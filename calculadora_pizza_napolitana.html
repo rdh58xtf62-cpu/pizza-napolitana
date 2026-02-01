@@ -3,183 +3,299 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
-<title>Calculadora Napolitana — Clássica</title>
+<title>Pizza Napolitana — Produção</title>
+
+<!-- PWA -->
+<link rel="manifest" href="/pizza-napolitana/manifest.webmanifest">
+<meta name="theme-color" content="#0b0f17">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="Pizza">
+<link rel="apple-touch-icon" href="/pizza-napolitana/icons/apple-touch-icon.png">
 
 <style>
 :root{
   --bg:#0b0f17;
-  --card:rgba(255,255,255,.08);
   --stroke:rgba(255,255,255,.15);
-  --text:#fff;
-  --muted:rgba(255,255,255,.65);
-  --accent:#6aa7ff;
+  --text:rgba(255,255,255,.94);
+  --muted:rgba(255,255,255,.66);
+  --muted2:rgba(255,255,255,.52);
+  --accent1:#6aa7ff;
+  --accent2:#4e86e6;
   --good:#33d17a;
+  --warn:#ffcc00;
   --radius:18px;
+  --shadow:0 18px 40px rgba(0,0,0,.35);
 }
 *{box-sizing:border-box}
 body{
   margin:0;
-  font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Arial;
-  background:
-    radial-gradient(900px 600px at 10% -10%, #6aa7ff55, transparent 60%),
-    radial-gradient(900px 600px at 110% 10%, #33d17a33, transparent 55%),
-    var(--bg);
+  font-family: ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, Arial;
   color:var(--text);
-  padding:20px;
+  min-height:100vh;
+  padding: 18px 14px 30px;
+  background:
+    radial-gradient(1000px 700px at 20% -10%, rgba(106,167,255,.30), transparent 60%),
+    radial-gradient(900px 650px at 110% 10%, rgba(51,209,122,.18), transparent 55%),
+    var(--bg);
 }
-.wrap{max-width:820px;margin:auto}
-h1{margin:0 0 6px;font-size:22px}
-.sub{color:var(--muted);font-size:13px;margin-bottom:16px}
+.wrap{max-width:920px;margin:0 auto}
+header{display:flex;gap:14px;align-items:flex-start;justify-content:space-between;margin-bottom:12px}
+h1{margin:0;font-size:20px;letter-spacing:.2px}
+.sub{margin:6px 0 0;color:var(--muted);font-size:13px;line-height:1.35}
+.badge{
+  align-self:flex-start;
+  padding:8px 10px;
+  border:1px solid var(--stroke);
+  background: rgba(0,0,0,.18);
+  border-radius:999px;
+  color:var(--muted);
+  font-size:12px;
+  white-space:nowrap;
+}
 
-.grid{display:grid;grid-template-columns:1fr 1fr;gap:14px}
-@media(max-width:820px){.grid{grid-template-columns:1fr}}
+.tabs{
+  display:flex; gap:10px; flex-wrap:wrap;
+  margin: 12px 0 14px;
+}
+.tabbtn{
+  border:1px solid rgba(255,255,255,.14);
+  background: rgba(255,255,255,.08);
+  color:var(--text);
+  padding:10px 12px;
+  border-radius:14px;
+  cursor:pointer;
+  font-weight:650;
+  letter-spacing:.2px;
+}
+.tabbtn.active{
+  background: linear-gradient(180deg, rgba(106,167,255,.95), rgba(78,134,230,.78));
+  border-color: rgba(106,167,255,.95);
+}
+
+.grid{display:grid;grid-template-columns:1.05fr .95fr;gap:14px}
+@media (max-width: 900px){.grid{grid-template-columns:1fr} header{flex-direction:column;align-items:flex-start;}}
 
 .card{
-  background:linear-gradient(180deg,rgba(255,255,255,.12),rgba(255,255,255,.05));
+  background: linear-gradient(180deg, rgba(255,255,255,.10), rgba(255,255,255,.06));
   border:1px solid var(--stroke);
-  border-radius:var(--radius);
-  padding:16px;
+  border-radius: var(--radius);
+  box-shadow: var(--shadow);
+  overflow:hidden;
 }
+.card .hd{
+  padding:14px 14px 10px;
+  border-bottom:1px solid rgba(255,255,255,.10);
+  display:flex; align-items:center; justify-content:space-between; gap:10px;
+  background: rgba(0,0,0,.10);
+}
+.card .hd h2{margin:0;font-size:14px;letter-spacing:.2px}
+.card .bd{padding:14px}
 
-label{font-size:12px;color:var(--muted)}
-input,select{
-  width:100%;
-  margin-top:6px;
+.field{
+  background: rgba(255,255,255,.06);
+  border:1px solid rgba(255,255,255,.10);
+  border-radius:14px;
   padding:12px;
+  margin-bottom:10px;
+}
+label{
+  display:flex; justify-content:space-between; align-items:baseline; gap:10px;
+  font-size:12px; color:var(--muted); margin-bottom:8px;
+}
+.hint{color:var(--muted2); font-size:11px}
+input, select{
+  width:100%;
+  padding:12px 12px;
   font-size:17px;
   border-radius:12px;
-  border:1px solid var(--stroke);
-  background:#00000055;
-  color:#fff;
+  border:1px solid rgba(255,255,255,.12);
+  background: rgba(0,0,0,.22);
+  color: var(--text);
+  outline:none;
 }
-
+input:focus, select:focus{
+  border-color: rgba(106,167,255,.70);
+  box-shadow: 0 0 0 4px rgba(106,167,255,.18);
+}
+.btnrow{display:flex;gap:10px;flex-wrap:wrap;margin-top:10px}
 button{
-  margin-top:12px;
-  padding:12px;
+  border:1px solid rgba(255,255,255,.14);
   border-radius:14px;
-  border:1px solid var(--stroke);
-  background:linear-gradient(180deg,#6aa7ff,#4e86e6);
-  color:#fff;
-  font-weight:600;
+  padding:12px 14px;
   cursor:pointer;
+  color:var(--text);
+  background: rgba(255,255,255,.08);
+  font-weight:650;
+  letter-spacing:.2px;
 }
+button.primary{
+  background: linear-gradient(180deg, rgba(106,167,255,.95), rgba(78,134,230,.78));
+  border-color: rgba(106,167,255,.95);
+}
+button.ghost{background: rgba(0,0,0,.18);}
 
 .kv{
   display:grid;
-  grid-template-columns:1fr auto;
+  grid-template-columns: 1fr auto;
+  gap:10px;
+  padding:10px 12px;
+  border-radius:14px;
+  border:1px solid rgba(255,255,255,.10);
+  background: rgba(255,255,255,.06);
   margin-bottom:10px;
-  padding:10px;
-  background:#ffffff0d;
-  border:1px solid var(--stroke);
-  border-radius:12px;
 }
 .k{color:var(--muted);font-size:12px}
-.v{font-weight:700}
-
-.section{margin:14px 0 8px;font-size:12px;color:var(--muted);text-transform:uppercase}
-.ok{color:var(--good);font-weight:700}
+.v{font-size:15px;font-weight:750}
+.sectionTitle{
+  margin: 10px 0 10px;
+  font-size:12px;
+  letter-spacing:.35px;
+  color:var(--muted);
+  text-transform:uppercase;
+}
+.note{
+  margin-top: 10px;
+  padding: 12px;
+  border-radius: 14px;
+  border: 1px dashed rgba(255,255,255,.18);
+  background: rgba(0,0,0,.18);
+  color: var(--muted);
+  font-size: 12px;
+  line-height: 1.35;
+}
+.okdot{
+  display:inline-block;width:8px;height:8px;border-radius:99px;
+  background:var(--good);
+  box-shadow:0 0 0 3px rgba(51,209,122,.18);
+  margin-right:8px;transform:translateY(-1px);
+}
+.hide{display:none !important;}
+.smallcaps{font-variant: all-small-caps; letter-spacing:.6px;}
 </style>
 </head>
 
 <body>
 <div class="wrap">
-  <h1>Calculadora Napolitana — Clássica</h1>
-  <div class="sub">65% hidratação · Poolish 20% · Fermento só no poolish · Tudo em gramas</div>
-
-  <div class="grid">
-    <!-- ENTRADA -->
-    <div class="card">
-      <label>Farinha total (g)</label>
-      <input id="farinha" type="number" value="1000">
-
-      <label style="margin-top:12px">Peso por bola (g)</label>
-      <input id="bola" type="number" value="270">
-
-      <label style="margin-top:12px">Atalho por diâmetro</label>
-      <select id="diametro">
-        <option value="">— escolher —</option>
-        <option value="250">32 cm (250 g)</option>
-        <option value="260">33 cm (260 g)</option>
-        <option value="270" selected>34 cm (270 g)</option>
-        <option value="280">35 cm (280 g)</option>
-      </select>
-
-      <button onclick="calcular()">Calcular</button>
+  <header>
+    <div>
+      <h1>Pizza Napolitana — Produção</h1>
+      <p class="sub"><span class="okdot"></span>Modo clássico fechado (65% H₂O · Poolish 20% · Sal 2,8% · Fermento só no poolish · Mel no poolish)</p>
     </div>
+    <div class="badge">Marana lenha · solo rotativo · 300–350°C</div>
+  </header>
 
-    <!-- RESULTADOS -->
-    <div class="card">
-      <div class="section">Bolas de massa</div>
-      <div class="kv"><div class="k">Massa total</div><div class="v" id="massaTotal">—</div></div>
-      <div class="kv"><div class="k">Nº de bolas</div><div class="v" id="nBolas">—</div></div>
-      <div class="kv"><div class="k">Sobra</div><div class="v" id="sobra">—</div></div>
+  <div class="tabs">
+    <button class="tabbtn active" data-tab="massa">Massa</button>
+    <button class="tabbtn" data-tab="forno">Forno & Perfis</button>
+    <button class="tabbtn" data-tab="lenha">Lenha</button>
+  </div>
 
-      <div class="section">Poolish</div>
-      <div class="kv"><div class="k">Farinha</div><div class="v" id="pFar">—</div></div>
-      <div class="kv"><div class="k">Água</div><div class="v" id="pAgua">—</div></div>
-      <div class="kv"><div class="k">Fermento seco</div><div class="v" id="pFer">—</div></div>
-      <div class="kv"><div class="k">Mel</div><div class="v" id="pMel">—</div></div>
+  <!-- TAB: MASSA -->
+  <div id="tab-massa">
+    <div class="grid">
+      <section class="card">
+        <div class="hd">
+          <h2>Entrada</h2>
+          <div class="hint"><span class="smallcaps">Base</span>: 65% água · poolish 20% · sal 2,8%</div>
+        </div>
+        <div class="bd">
+          <div class="field">
+            <label for="modo">Modo de cálculo <span class="hint">normal ou inverso</span></label>
+            <select id="modo">
+              <option value="farinha" selected>Tenho farinha → calcular</option>
+              <option value="bolas">Quero X bolas → calcular farinha</option>
+            </select>
+          </div>
 
-      <div class="section">Massa final</div>
-      <div class="kv"><div class="k">Farinha</div><div class="v" id="mFar">—</div></div>
-      <div class="kv"><div class="k">Água</div><div class="v" id="mAgua">—</div></div>
-      <div class="kv"><div class="k">Sal</div><div class="v" id="mSal">—</div></div>
+          <div class="field" id="boxFarinha">
+            <label for="farinha">Farinha total (g) <span class="hint">ex.: 1000</span></label>
+            <input id="farinha" type="number" min="0" step="1" value="1000">
+          </div>
+
+          <div class="field hide" id="boxQtdBolas">
+            <label for="qtdBolas">Quantas bolas? <span class="hint">inteiro</span></label>
+            <input id="qtdBolas" type="number" min="1" step="1" value="10">
+          </div>
+
+          <div class="field">
+            <label for="bola">Peso por bola (g) <span class="hint">32–35 cm: 250–280</span></label>
+            <input id="bola" type="number" min="100" step="1" value="270">
+
+            <label for="diametro" style="margin-top:12px">Atalho por diâmetro <span class="hint">opcional</span></label>
+            <select id="diametro">
+              <option value="">— escolher —</option>
+              <option value="250">32 cm (250 g)</option>
+              <option value="260">33 cm (260 g)</option>
+              <option value="270" selected>34 cm (270 g)</option>
+              <option value="280">35 cm (280 g)</option>
+            </select>
+
+            <div class="btnrow">
+              <button class="primary" id="btnCalcular">Calcular</button>
+              <button class="ghost" id="btnCopiar">Copiar resultados</button>
+            </div>
+          </div>
+
+          <div class="note">
+            <b>Correção fixa:</b> fermento seco calculado sobre a farinha total e colocado <b>apenas</b> no poolish.
+            Massa final <b>não leva fermento extra</b>.
+          </div>
+        </div>
+      </section>
+
+      <section class="card">
+        <div class="hd">
+          <h2>Resultados</h2>
+          <div class="hint">0,1 g | fermento 0,01 g</div>
+        </div>
+        <div class="bd">
+          <div class="sectionTitle">Bolas</div>
+          <div class="kv"><div class="k">Massa total (estimada)</div><div class="v" id="massaTotal">—</div></div>
+          <div class="kv"><div class="k">Nº de bolas (inteiro)</div><div class="v" id="nBolas">—</div></div>
+          <div class="kv"><div class="k">Sobra / margem</div><div class="v" id="sobra">—</div></div>
+
+          <div class="sectionTitle">Poolish</div>
+          <div class="kv"><div class="k">Farinha poolish</div><div class="v" id="pFar">—</div></div>
+          <div class="kv"><div class="k">Água poolish</div><div class="v" id="pAgua">—</div></div>
+          <div class="kv"><div class="k">Fermento seco (no poolish)</div><div class="v" id="pFer">—</div></div>
+          <div class="kv"><div class="k">Mel (no poolish)</div><div class="v" id="pMel">—</div></div>
+
+          <div class="sectionTitle">Massa final</div>
+          <div class="kv"><div class="k">Farinha massa</div><div class="v" id="mFar">—</div></div>
+          <div class="kv"><div class="k">Água massa</div><div class="v" id="mAgua">—</div></div>
+          <div class="kv"><div class="k">Sal</div><div class="v" id="mSal">—</div></div>
+        </div>
+      </section>
     </div>
   </div>
 
-  <p class="sub"><span class="ok">✔</span> Receita fixa napolitana clássica. Não mexer em percentagens.</p>
-</div>
+  <!-- TAB: FORNO -->
+  <div id="tab-forno" class="hide">
+    <div class="grid">
+      <section class="card">
+        <div class="hd">
+          <h2>Perfis (Açores) — Marana lenha rotativo</h2>
+          <div class="hint">sugestões operacionais</div>
+        </div>
+        <div class="bd">
+          <div class="field">
+            <label for="perfil">Perfil <span class="hint">verão / inverno</span></label>
+            <select id="perfil">
+              <option value="verao">Verão</option>
+              <option value="inverno">Inverno</option>
+            </select>
+          </div>
 
-<script>
-const cfg={
-  poolish:0.20,
-  hidratacao:0.65,
-  sal:0.028,
-  fermento:0.00025,
-  mel:0.001
-};
+          <div class="field">
+            <label for="tempForno">Faixa alvo de forno (°C) <span class="hint">teu normal: 300–350</span></label>
+            <select id="tempForno">
+              <option value="300-330">300–330°C (mais controlado)</option>
+              <option value="330-350" selected>330–350°C (serviço forte)</option>
+            </select>
+          </div>
 
-function g(x){return x.toFixed(1)+" g"}
-function f(x){return x.toFixed(2)+" g"}
-
-function calcular(){
-  const farinha=+document.getElementById("farinha").value;
-  let bola=+document.getElementById("bola").value;
-  const d=document.getElementById("diametro").value;
-  if(d) bola=+d;
-
-  const fp=farinha*cfg.poolish;
-  const ap=fp;
-  const at=farinha*cfg.hidratacao;
-  const fm=farinha-fp;
-  const am=at-ap;
-  const sal=farinha*cfg.sal;
-  const fer=farinha*cfg.fermento;
-  const mel=farinha*cfg.mel;
-
-  const massaTotal=farinha+at+sal+fer+mel;
-  const n=Math.floor(massaTotal/bola);
-  const sobra=massaTotal-(n*bola);
-
-  massaTotalEl.textContent=g(massaTotal);
-  nBolas.textContent=n;
-  sobraEl.textContent=g(sobra);
-
-  pFar.textContent=g(fp);
-  pAgua.textContent=g(ap);
-  pFer.textContent=f(fer);
-  pMel.textContent=g(mel);
-
-  mFar.textContent=g(fm);
-  mAgua.textContent=g(am);
-  mSal.textContent=g(sal);
-}
-
-const massaTotalEl=document.getElementById("massaTotal");
-const nBolas=document.getElementById("nBolas");
-const sobraEl=document.getElementById("sobra");
-
-calcular();
-</script>
-</body>
-</html>
+          <div class="field">
+            <label for="rotacao">Rotação do solo <span class="hint">guia prático</span></label>
+            <select id="rotacao">
+              <option val
