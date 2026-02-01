@@ -298,4 +298,339 @@ button.ghost{background: rgba(0,0,0,.18);}
           <div class="field">
             <label for="rotacao">Rotação do solo <span class="hint">guia prático</span></label>
             <select id="rotacao">
-              <option val
+              <option value="baixa">Baixa (mais cor uniforme, menos stress)</option>
+              <option value="media" selected>Média (equilíbrio para 300–350°C)</option>
+              <option value="alta">Alta (picos/produção; vigiar cor)</option>
+            </select>
+          </div>
+
+          <div class="note" id="notaForno"></div>
+        </div>
+      </section>
+
+      <section class="card">
+        <div class="hd">
+          <h2>Rotina diária</h2>
+          <div class="hint">baseado no teu horário</div>
+        </div>
+        <div class="bd">
+          <div class="field">
+            <label>Aquecimento <span class="hint">início e fim</span></label>
+            <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;">
+              <input id="heatStart" type="time" value="14:00">
+              <input id="heatEnd" type="time" value="18:00">
+            </div>
+          </div>
+
+          <div class="field">
+            <label>Serviço <span class="hint">início e fim</span></label>
+            <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;">
+              <input id="srvStart" type="time" value="18:00">
+              <input id="srvEnd" type="time" value="22:00">
+            </div>
+          </div>
+
+          <div class="kv"><div class="k">Horas de aquecimento</div><div class="v" id="heatHours">—</div></div>
+          <div class="kv"><div class="k">Horas de serviço</div><div class="v" id="srvHours">—</div></div>
+
+          <div class="note" id="notaRotina"></div>
+        </div>
+      </section>
+    </div>
+  </div>
+
+  <!-- TAB: LENHA -->
+  <div id="tab-lenha" class="hide">
+    <div class="grid">
+      <section class="card">
+        <div class="hd">
+          <h2>Cálculo de lenha (kg)</h2>
+          <div class="hint">estimativa ajustável</div>
+        </div>
+        <div class="bd">
+          <div class="field">
+            <label>Horas (puxa do separador “Forno”) <span class="hint">editável lá</span></label>
+            <div class="kv"><div class="k">Aquecimento</div><div class="v" id="heatHours2">—</div></div>
+            <div class="kv"><div class="k">Serviço</div><div class="v" id="srvHours2">—</div></div>
+          </div>
+
+          <div class="field">
+            <label for="rateHeat">Consumo no aquecimento (kg/h) <span class="hint">ajusta à tua realidade</span></label>
+            <input id="rateHeat" type="number" min="0" step="0.1" value="4.5">
+            <div class="hint" style="margin-top:8px">Começa aqui: 4–6 kg/h é comum em aquecimento. Ajusta após 3 serviços com pesagem real.</div>
+          </div>
+
+          <div class="field">
+            <label for="rateSrv">Consumo em serviço (kg/h) <span class="hint">manter 300–350°C</span></label>
+            <input id="rateSrv" type="number" min="0" step="0.1" value="3.0">
+            <div class="hint" style="margin-top:8px">Começa aqui: 2–4 kg/h em serviço (depende do vento, porta, lotação e madeira).</div>
+          </div>
+
+          <div class="btnrow">
+            <button class="primary" id="btnLenha">Calcular lenha</button>
+          </div>
+
+          <div class="sectionTitle">Resultado</div>
+          <div class="kv"><div class="k">Lenha aquecimento</div><div class="v" id="woodHeat">—</div></div>
+          <div class="kv"><div class="k">Lenha serviço</div><div class="v" id="woodSrv">—</div></div>
+          <div class="kv"><div class="k"><b>Total (kg)</b></div><div class="v" id="woodTotal">—</div></div>
+
+          <div class="note">
+            <b>Como calibrar:</b> pesa a lenha no início do aquecimento e no fim do serviço durante 3 dias.
+            Divide por horas para obteres as tuas taxas reais (kg/h) e coloca aqui.
+          </div>
+        </div>
+      </section>
+
+      <section class="card">
+        <div class="hd">
+          <h2>Dicas rápidas para baixar consumo</h2>
+          <div class="hint">sem perder performance</div>
+        </div>
+        <div class="bd">
+          <div class="note" style="margin-top:0">
+            • Mantém a porta o mais fechada possível durante aquecimento.<br>
+            • Em serviço, alimenta com toros menores e mais frequentes (evita picos).<br>
+            • Com solo rotativo, usa rotação média e ajusta tempo/posição em vez de “fogo a mais”.<br>
+            • Vento lateral aumenta consumo — protege a boca se possível.<br>
+            • Madeira consistente e seca = menos kg para mesma energia.
+          </div>
+        </div>
+      </section>
+    </div>
+  </div>
+
+</div>
+
+<script>
+// === RECEITA FIXA (modo napolitana clássica) ===
+const cfg = {
+  poolish: 0.20,
+  hidratacao: 0.65,
+  sal: 0.028,
+  fermento: 0.00025, // 0,025% (só no poolish)
+  mel: 0.001         // 0,10% (só no poolish)
+};
+// massa total por 1g farinha:
+const MASS_FACTOR = 1 + cfg.hidratacao + cfg.sal + cfg.fermento + cfg.mel; // 1.67925
+
+const $ = (id) => document.getElementById(id);
+const g = (x) => `${x.toFixed(1)} g`;
+const f = (x) => `${x.toFixed(2)} g`;
+
+function timeToMinutes(t){
+  // "HH:MM"
+  if(!t || !t.includes(":")) return 0;
+  const [hh, mm] = t.split(":").map(Number);
+  return (hh*60) + mm;
+}
+function diffHours(start, end){
+  // allow cross-midnight if needed
+  let s = timeToMinutes(start);
+  let e = timeToMinutes(end);
+  if(e < s) e += 24*60;
+  return (e - s) / 60;
+}
+
+// === TABS ===
+document.querySelectorAll(".tabbtn").forEach(btn=>{
+  btn.addEventListener("click", ()=>{
+    document.querySelectorAll(".tabbtn").forEach(b=>b.classList.remove("active"));
+    btn.classList.add("active");
+    const tab = btn.getAttribute("data-tab");
+    $("tab-massa").classList.toggle("hide", tab !== "massa");
+    $("tab-forno").classList.toggle("hide", tab !== "forno");
+    $("tab-lenha").classList.toggle("hide", tab !== "lenha");
+    if(tab !== "massa") updateHoras(); // manter lenha/forno sincronizados
+  });
+});
+
+// === MODO MASSA ===
+function syncModo(){
+  const modo = $("modo").value;
+  $("boxQtdBolas").classList.toggle("hide", modo !== "bolas");
+  $("boxFarinha").classList.toggle("hide", modo === "bolas");
+}
+$("modo").addEventListener("change", ()=>{ syncModo(); calcular(); });
+
+$("diametro").addEventListener("change", ()=>{ calcular(); });
+$("btnCalcular").addEventListener("click", calcular);
+
+function calcular(){
+  let bola = Number($("bola").value);
+  const d = $("diametro").value;
+  if(d) bola = Number(d);
+
+  if(!isFinite(bola) || bola <= 0){
+    alert("Introduz o peso por bola (g).");
+    return;
+  }
+
+  let farinha;
+  const modo = $("modo").value;
+
+  if(modo === "bolas"){
+    const n = Number($("qtdBolas").value);
+    if(!isFinite(n) || n <= 0){
+      alert("Introduz quantas bolas queres.");
+      return;
+    }
+    const massaDesejada = n * bola;
+    farinha = massaDesejada / MASS_FACTOR;
+  } else {
+    farinha = Number($("farinha").value);
+  }
+
+  if(!isFinite(farinha) || farinha <= 0){
+    alert("Introduz a farinha total em gramas (valor > 0).");
+    return;
+  }
+
+  // Receita
+  const fp  = farinha * cfg.poolish;
+  const ap  = fp;
+  const at  = farinha * cfg.hidratacao;
+  const fm  = farinha - fp;
+  const am  = at - ap;
+  const sal = farinha * cfg.sal;
+  const fer = farinha * cfg.fermento;
+  const mel = farinha * cfg.mel;
+
+  const massaTotal = farinha + at + sal + fer + mel;
+  const nB = Math.floor(massaTotal / bola);
+  const sobra = massaTotal - (nB * bola);
+
+  $("massaTotal").textContent = g(massaTotal);
+  $("nBolas").textContent = `${nB} un`;
+  $("sobra").textContent = g(sobra);
+
+  $("pFar").textContent  = g(fp);
+  $("pAgua").textContent = g(ap);
+  $("pFer").textContent  = f(fer);
+  $("pMel").textContent  = g(mel);
+
+  $("mFar").textContent  = g(fm);
+  $("mAgua").textContent = g(am);
+  $("mSal").textContent  = g(sal);
+}
+
+$("btnCopiar").addEventListener("click", async ()=>{
+  const txt =
+`PIZZA NAPOLITANA — PRODUÇÃO
+
+BOLAS
+- Massa total: ${$("massaTotal").textContent}
+- Nº bolas: ${$("nBolas").textContent}
+- Sobra: ${$("sobra").textContent}
+
+POOLISH
+- Farinha: ${$("pFar").textContent}
+- Água: ${$("pAgua").textContent}
+- Fermento seco: ${$("pFer").textContent}
+- Mel: ${$("pMel").textContent}
+
+MASSA FINAL
+- Farinha: ${$("mFar").textContent}
+- Água: ${$("mAgua").textContent}
+- Sal: ${$("mSal").textContent}`;
+
+  try{
+    await navigator.clipboard.writeText(txt);
+    alert("Resultados copiados.");
+  }catch(e){
+    alert("Não consegui copiar automaticamente. (Permissões do browser)");
+  }
+});
+
+// === PERFIS FORNO ===
+function updatePerfil(){
+  const perfil = $("perfil").value;
+  const faixa = $("tempForno").value;
+  const rot = $("rotacao").value;
+
+  const faixaTxt = (faixa === "300-330") ? "300–330°C" : "330–350°C";
+  let rotTxt = "média";
+  if(rot === "baixa") rotTxt = "baixa";
+  if(rot === "alta") rotTxt = "alta";
+
+  let txt = `<b>Alvo:</b> ${faixaTxt} · <b>Rotação:</b> ${rotTxt}<br><br>`;
+
+  if(perfil === "verao"){
+    txt +=
+`<b>Verão (Açores):</b><br>
+• A massa acelera: trabalha mais “frio” e com menos tempo fora do frio antes do serviço.<br>
+• No forno, evita picos: mantém alimentação de lenha em “micro-cargas” para estabilidade.<br>
+• Se tiveres base a escurecer rápido: baixa ligeiramente a faixa (300–330°C) ou aumenta rotação para uniformizar.<br>
+• Porta: o máximo fechada possível para não disparar consumo com vento.`;
+  } else {
+    txt +=
+`<b>Inverno (Açores):</b><br>
+• A massa precisa de mais tempo a relaxar: dá mais tempo fora do frio antes de abrir.<br>
+• No forno, podes trabalhar mais confortável em 330–350°C sem queimar tanto (menos humidade/ambiente mais frio).<br>
+• Se faltarem cores no topo: sobe ligeiramente a faixa (330–350°C) ou reduz rotação se estiver a “secar” a base rápido.<br>
+• Mantém lenha seca e consistente: melhora estabilidade e reduz correções.`;
+  }
+
+  $("notaForno").innerHTML = txt;
+}
+$("perfil").addEventListener("change", updatePerfil);
+$("tempForno").addEventListener("change", updatePerfil);
+$("rotacao").addEventListener("change", updatePerfil);
+
+// === HORAS / ROTINA ===
+function updateHoras(){
+  const h1 = diffHours($("heatStart").value, $("heatEnd").value);
+  const s1 = diffHours($("srvStart").value, $("srvEnd").value);
+
+  $("heatHours").textContent = `${h1.toFixed(2)} h`;
+  $("srvHours").textContent = `${s1.toFixed(2)} h`;
+  $("heatHours2").textContent = `${h1.toFixed(2)} h`;
+  $("srvHours2").textContent = `${s1.toFixed(2)} h`;
+
+  $("notaRotina").innerHTML =
+`<b>Rotina sugerida:</b><br>
+• Aquecimento: começa com fogo progressivo (evita “choque térmico” e consumo desnecessário).<br>
+• 45–60 min antes do serviço: estabilizar a pedra na faixa alvo (menos fumo, chama limpa).<br>
+• Em serviço: alimentação frequente e pequena para manter 300–350°C sem picos.`;
+}
+["heatStart","heatEnd","srvStart","srvEnd"].forEach(id=>{
+  $(id).addEventListener("change", ()=>{ updateHoras(); });
+});
+
+// === LENHA ===
+$("btnLenha").addEventListener("click", calcLenha);
+
+function calcLenha(){
+  const h = parseFloat($("heatHours2").textContent) || diffHours($("heatStart").value, $("heatEnd").value);
+  const s = parseFloat($("srvHours2").textContent) || diffHours($("srvStart").value, $("srvEnd").value);
+  const rH = Number($("rateHeat").value);
+  const rS = Number($("rateSrv").value);
+
+  if(!isFinite(rH) || rH < 0 || !isFinite(rS) || rS < 0){
+    alert("As taxas kg/h têm de ser números válidos.");
+    return;
+  }
+
+  const woodHeat = h * rH;
+  const woodSrv  = s * rS;
+  const total = woodHeat + woodSrv;
+
+  $("woodHeat").textContent = `${woodHeat.toFixed(1)} kg`;
+  $("woodSrv").textContent  = `${woodSrv.toFixed(1)} kg`;
+  $("woodTotal").textContent= `${total.toFixed(1)} kg`;
+}
+
+// === INIT ===
+syncModo();
+updatePerfil();
+updateHoras();
+calcular();
+calcLenha();
+
+// Service Worker (offline)
+if ("serviceWorker" in navigator) {
+  navigator.serviceWorker.register("/pizza-napolitana/sw.js");
+}
+</script>
+</body>
+</html>
